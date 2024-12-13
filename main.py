@@ -113,12 +113,10 @@ def logout():
 @login_required
 def index():
     if request.method == 'POST':
-        address = request.form['address']
-
         headers = {
             'User-Agent': 'EventualApp/1.0 (mikolajzabski@uma.es)'
         }
-        response = requests.get(f'https://nominatim.openstreetmap.org/search?q={address}&format=json', headers=headers)
+        response = requests.get(f'https://nominatim.openstreetmap.org/search?q={'Malaga'}&format=json', headers=headers)
         try:
             response_json = response.json()
             if response.status_code == 200 and response_json:
@@ -182,12 +180,6 @@ def deleteMarker(_id):
 
     markers_collection.delete_one({'_id': ObjectId(_id)})
     return redirect(url_for('index'))
-
-@app.route('/logs', methods=['GET'])
-@login_required
-def showLogs():
-    logs = list(logs_collection.find().sort('timestamp', pymongo.DESCENDING))
-    return render_template('logs.html', logs=logs)
 
 @app.route('/add_marker', methods=['POST'])
 @login_required

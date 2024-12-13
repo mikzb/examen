@@ -14,7 +14,7 @@
             <p>Welcome, {{ current_user.name }}!</p>
             <img src="{{ current_user.profile_pic }}" alt="User Image" class="img-fluid">
             <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
-            <form method="POST" action="{{ url_for('index') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ url_for('add_marker') }}" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="new_address">Enter Country or City:</label>
                     <input type="text" id="new_address" name="new_address" class="form-control" required>
