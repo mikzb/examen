@@ -7,6 +7,7 @@ import requests
 from math import radians, cos, sin, sqrt, atan2
 from authlib.integrations.flask_client import OAuth
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -62,6 +63,8 @@ client = pymongo.MongoClient(uri)
 db = client.eventual
 users_collection = db.users
 events_collection = db.eventos
+# Ensure you have a logs collection in your database
+logs_collection = db.logs
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -81,6 +84,16 @@ def authorize():
     if not user:
         user = User.create(user_info['id'], user_info['name'], user_info['email'], user_info['picture'])
     login_user(user)
+    
+    # Log the login data
+    log_data = {
+        'timestamp': datetime.utcnow(),
+        'user': user.email,
+        'timeout': datetime.utcnow() + timedelta(seconds=token['expires_in']),  # Use the expires_in value from the token
+        'identification_token': token['access_token']
+    }
+    logs_collection.insert_one(log_data)
+    
     return redirect(url_for('index'))
 
 @app.route('/logout')
@@ -150,7 +163,7 @@ def newEvent():
                 'place': place,
                 'lat': lat,
                 'lon': lon,
-                'organizer': request.form['inputOrganizer'],
+                'organizer': current_user.email,
                 'image': request.form['inputImage']
             }
             events_collection.insert_one(event)
@@ -161,8 +174,11 @@ def newEvent():
 @app.route('/events/edit/<_id>', methods=['GET', 'POST'])
 @login_required
 def editEvent(_id):
+    event = events_collection.find_one({'_id': ObjectId(_id)})
+    if event['organizer'] != current_user.email:
+        return "You are not authorized to edit this event", 403
+
     if request.method == 'GET':
-        event = events_collection.find_one({'_id': ObjectId(_id)})
         return render_template('edit_event.html', event=event)
     else:
         place = request.form['inputPlace']
@@ -180,7 +196,7 @@ def editEvent(_id):
                 'place': place,
                 'lat': lat,
                 'lon': lon,
-                'organizer': request.form['inputOrganizer'],
+                'organizer': current_user.email,  # Ensure the organizer is the current user
                 'image': request.form['inputImage']
             }
             events_collection.update_one({'_id': ObjectId(_id)}, {'$set': event})
@@ -191,11 +207,19 @@ def editEvent(_id):
 @app.route('/events/delete/<_id>', methods=['GET'])
 @login_required
 def deleteEvent(_id):
+    event = events_collection.find_one({'_id': ObjectId(_id)})
+    if event['organizer'] != current_user.email:
+        return "You are not authorized to delete this event", 403
+
     events_collection.delete_one({'_id': ObjectId(_id)})
     return redirect(url_for('showEvents'))
 
-# Ensure the app is callable by Vercel
-app = app
+@app.route('/logs', methods=['GET'])
+@login_required
+def showLogs():
+    logs = list(logs_collection.find().sort('timestamp', pymongo.DESCENDING))
+    return render_template('logs.html', logs=logs)
+
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=8000, debug=True)
