@@ -8,8 +8,24 @@ from math import radians, cos, sin, sqrt, atan2
 from authlib.integrations.flask_client import OAuth
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from datetime import datetime, timedelta
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
 
 app = Flask(__name__)
+
+cloudinary.config(
+  cloud_name = 'da5v08x9g',
+  api_key = '199397127967679',
+  api_secret = 'JV694YWmyg4l09xsuW9sGMz31Ug'
+)
+
+# Flask-Login configuration
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'  # Redirect to login page if not authenticated
+
 
 env = Env()
 env.read_env()  # read .env file, if it exists
@@ -33,6 +49,7 @@ google = oauth.register(
 # Flask-Login configuration
 login_manager = LoginManager()
 login_manager.init_app(app)
+login_manager.login_view = 'login'
 
 class User(UserMixin):
     def __init__(self, id_, name, email, profile_pic):
@@ -82,6 +99,7 @@ def authorize():
     if not user:
         user = User.create(user_info['id'], user_info['name'], user_info['email'], user_info['picture'])
     login_user(user)
+
     
     return redirect(url_for('index'))
 
@@ -91,21 +109,12 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
-def calculate_distance(lat1, lon1, lat2, lon2):
-    # Convert latitude and longitude from degrees to radians
-    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
-    # Haversine formula
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
-    distance = 6371 * c  # Radius of Earth in kilometers
-    return distance
-
 @app.route('/', methods=['GET', 'POST'])
+@login_required
 def index():
     if request.method == 'POST':
         address = request.form['address']
+
         headers = {
             'User-Agent': 'EventualApp/1.0 (mikolajzabski@uma.es)'
         }
@@ -113,96 +122,66 @@ def index():
         try:
             response_json = response.json()
             if response.status_code == 200 and response_json:
-                location = response_json[0]
-                lat = float(location['lat'])
-                lon = float(location['lon'])
-                events = list(events_collection.find())
-                nearby_events = [event for event in events if calculate_distance(lat, lon, event['lat'], event['lon']) <= 0.3]
-                print(lat, lon)
-                return render_template('index.html', events=nearby_events, address=address, lat=lat, lon=lon)
+                return render_template('index.html', markers=markers_collection.find({'user_id': current_user.id}))
             else:
-                return render_template('index.html', error="Address not found")
+                return render_template('index.html', error="Address not found", markers=markers_collection.find({'user_id': current_user.id}))
         except requests.exceptions.JSONDecodeError:
             print("Error decoding JSON response")
-            return render_template('index.html', error="Error decoding JSON response")
-    return render_template('index.html')
+            return render_template('index.html', error="Error decoding JSON response", markers=markers_collection.find({'user_id': current_user.id}))
+    return render_template('index.html', markers=markers_collection.find({'user_id': current_user.id}))
 
-@app.route('/events', methods=['GET'])
-def showEvents():
-    events = list(events_collection.find().sort('timestamp', pymongo.DESCENDING))
-    return render_template('events.html', events=events)
-
-@app.route('/events/new', methods=['GET', 'POST'])
+@app.route('/markers/edit/<_id>', methods=['GET', 'POST'])
 @login_required
-def newEvent():
-    if request.method == 'GET':
-        return render_template('new_event.html')
-    else:
-        place = request.form['inputPlace']
+def editMarker(_id):
+    marker = markers_collection.find_one({'_id': ObjectId(_id), 'user_id': current_user.id})
+    if not marker:
+        return "Marker not found", 404
+
+    if request.method == 'POST':
+        address = request.form['new_address']
+        image = request.files['image']
+
+        # Upload the new image to Cloudinary if a new image is provided
+        if image:
+            result = cloudinary.uploader.upload(image)
+            image_url = result['secure_url']
+        else:
+            image_url = marker['image_url']
+
         headers = {
             'User-Agent': 'EventualApp/1.0 (mikolajzabski@uma.es)'
         }
-        response = requests.get(f'https://nominatim.openstreetmap.org/search?q={place}&format=json', headers=headers)
+        response = requests.get(f'https://nominatim.openstreetmap.org/search?q={address}&format=json', headers=headers)
         if response.status_code == 200 and response.json():
             location = response.json()[0]
             lat = float(location['lat'])
             lon = float(location['lon'])
-            event = {
-                'name': request.form['inputName'],
-                'timestamp': datetime.strptime(request.form['inputTimestamp'], '%Y-%m-%dT%H:%M'),
-                'place': place,
-                'lat': lat,
-                'lon': lon,
-                'organizer': current_user.email,
-                'image': request.form['inputImage']
-            }
-            events_collection.insert_one(event)
-            return redirect(url_for('showEvents'))
+
+            # Update the marker in the database
+            markers_collection.update_one(
+                {'_id': ObjectId(_id)},
+                {'$set': {
+                    'address': address,
+                    'lat': lat,
+                    'lon': lon,
+                    'image_url': image_url
+                }}
+            )
+            return redirect(url_for('index'))
         else:
-            return render_template('new_event.html', error="Place not found")
+            return "Error: Could not find location", 400
 
-@app.route('/events/edit/<_id>', methods=['GET', 'POST'])
+    return render_template('edit_marker.html', marker=marker)
+
+@app.route('/markers/delete/<_id>', methods=['GET'])
 @login_required
-def editEvent(_id):
-    event = events_collection.find_one({'_id': ObjectId(_id)})
-    if event['organizer'] != current_user.email:
-        return "You are not authorized to edit this event", 403
+def deleteMarker(_id):
+    marker = markers_collection.find_one({'_id': ObjectId(_id), 'user_id': current_user.id})
+    if not marker:
+        return "Marker not found", 404
 
-    if request.method == 'GET':
-        return render_template('edit_event.html', event=event)
-    else:
-        place = request.form['inputPlace']
-        headers = {
-            'User-Agent': 'EventualApp/1.0 (mikolajzabski@uma.es)'
-        }
-        response = requests.get(f'https://nominatim.openstreetmap.org/search?q={place}&format=json', headers=headers)
-        if response.status_code == 200 and response.json():
-            location = response.json()[0]
-            lat = float(location['lat'])
-            lon = float(location['lon'])
-            event = {
-                'name': request.form['inputName'],
-                'timestamp': datetime.strptime(request.form['inputTimestamp'], '%Y-%m-%dT%H:%M'),
-                'place': place,
-                'lat': lat,
-                'lon': lon,
-                'organizer': current_user.email,  # Ensure the organizer is the current user
-                'image': request.form['inputImage']
-            }
-            events_collection.update_one({'_id': ObjectId(_id)}, {'$set': event})
-            return redirect(url_for('showEvents'))
-        else:
-            return render_template('edit_event.html', event=event, error="Place not found")
-
-@app.route('/events/delete/<_id>', methods=['GET'])
-@login_required
-def deleteEvent(_id):
-    event = events_collection.find_one({'_id': ObjectId(_id)})
-    if event['organizer'] != current_user.email:
-        return "You are not authorized to delete this event", 403
-
-    events_collection.delete_one({'_id': ObjectId(_id)})
-    return redirect(url_for('showEvents'))
+    markers_collection.delete_one({'_id': ObjectId(_id)})
+    return redirect(url_for('index'))
 
 @app.route('/logs', methods=['GET'])
 @login_required
@@ -214,6 +193,11 @@ def showLogs():
 @login_required
 def add_marker():
     address = request.form['new_address']
+    image = request.files['image']
+    
+    result = cloudinary.uploader.upload(image)
+    image_url = result['secure_url']
+
     headers = {
         'User-Agent': 'EventualApp/1.0 (mikolajzabski@uma.es)'
     }
@@ -226,7 +210,9 @@ def add_marker():
             'address': address,
             'lat': lat,
             'lon': lon,
+            'image_url': image_url,
             'user_id': current_user.id
+            
         }
         markers_collection.insert_one(marker)
         return redirect(url_for('index'))

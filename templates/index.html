@@ -14,35 +14,38 @@
             <p>Welcome, {{ current_user.name }}!</p>
             <img src="{{ current_user.profile_pic }}" alt="User Image" class="img-fluid">
             <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+            <form method="POST" action="{{ url_for('index') }}" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="new_address">Enter Country or City:</label>
+                    <input type="text" id="new_address" name="new_address" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="image">Upload Image:</label>
+                    <input type="file" id="image" name="image" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Marker</button>
+            </form>
+
+            <!-- Map container -->
+            <div id="map" style="height: 500px;"></div>
+
+            <h2>Markers</h2>
+            <ul>
+                {% for marker in markers %}
+                <li>
+                    <h3>{{ marker.address }}</h3>
+                    <p>Latitude: {{ marker.lat }}</p>
+                    <p>Longitude: {{ marker.lon }}</p>
+                    <p>User ID: {{ marker.user_id }}</p>
+                    <img src="{{ marker.image_url }}" alt="Marker Image" class="img-fluid">
+                    <a href="{{ url_for('editMarker', _id=marker._id) }}" class="btn btn-warning">Edit</a>
+                    <a href="{{ url_for('deleteMarker', _id=marker._id) }}" class="btn btn-danger">Delete</a>
+                </li>
+                {% endfor %}
+            </ul>
         {% else %}
-            <a href="{{ url_for('login') }}" class="btn btn-primary">Login with Google</a>
+            <a href="{{ url_for('oauth_login') }}" class="btn btn-primary">Login with Google</a>
         {% endif %}
-        <form method="POST" action="{{ url_for('add_marker') }}">
-            <div class="form-group">
-                <label for="new_address">Enter Country or City:</label>
-                <input type="text" id="new_address" name="new_address" class="form-control" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Add Marker</button>
-        </form>
-
-        <!-- Map container -->
-        <div id="map" style="height: 500px;"></div>
-
-        <h2>Events</h2>
-        <ul>
-            {% for event in events %}
-            <li>
-                <h3>{{ event.name }}</h3>
-                <p>{{ event.timestamp }}</p>
-                <p>{{ event.place }}</p>
-                <p>{{ event.lat }}, {{ event.lon }}</p>
-                <p>{{ event.organizer }}</p>
-                <img src="{{ event.image }}" alt="Event Image">
-                <a href="{{ url_for('editEvent', _id=event._id) }}">Edit</a>
-                <a href="{{ url_for('deleteEvent', _id=event._id) }}">Delete</a>
-            </li>
-            {% endfor %}
-        </ul>
     </div>
 
     <!-- Include jQuery and Bootstrap JS -->
@@ -52,46 +55,18 @@
     <!-- Include Leaflet JS for map functionality -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
-<!-- Initialize Leaflet Maps -->
-<!-- <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      document.querySelectorAll(".map").forEach((mapElement) => {
-        const lat = parseFloat(mapElement.getAttribute("data-lat"));
-        const lng = parseFloat(mapElement.getAttribute("data-lng"));
+    <!-- Initialize a placeholder leaflet map-->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const lat = parseFloat("{{ lat }}");
+            const lon = parseFloat("{{ lon }}");
+            const map = L.map('map').setView([ 36.7213028 ,  -4.4216366 ], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+            }).addTo(map);
 
-        // Validate coordinates
-        if (isNaN(lat) || isNaN(lng)) {
-          console.warn(
-            `Latitud o longitud inválida para el mapa: ${mapElement.id}`
-          );
-          return;
-        }
-
-        // Initialize map
-        const mapId = mapElement.id;
-        const map = L.map(mapId).setView([lat, lng], 13);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          maxZoom: 19,
-        }).addTo(map);
-
-        // Add marker
-        L.marker([lat, lng]).addTo(map);
-      });
-    });
-</script> -->
-
-<!-- Initialize a placeholder leaflet map-->
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const lat = parseFloat("{{ lat }}");
-        const lon = parseFloat("{{ lon }}");
-        const map = L.map('map').setView([ 36.7213028 ,  -4.4216366 ], 12);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-        }).addTo(map);
-
-        L.marker([ lat ,  lon ]).addTo(map);
-    });
-</script>
+            L.marker([ lat ,  lon ]).addTo(map);
+        });
+    </script>
 </body>
 </html>

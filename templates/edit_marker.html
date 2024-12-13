@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Marker</title>
+    <!-- Include Bootstrap CSS for styling -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Edit Marker</h1>
+        <form method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="new_address">Enter Country or City:</label>
+                <input type="text" id="new_address" name="new_address" class="form-control" value="{{ marker.address }}" required>
+            </div>
+            <div class="form-group">
+                <label for="image">Upload New Image (optional):</label>
+                <input type="file" id="image" name="image" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary">Update Marker</button>
+        </form>
+    </div>
+
+    <!-- Include jQuery and Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
