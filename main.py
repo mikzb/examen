@@ -117,6 +117,9 @@ def editEvent(_id):
             return redirect(url_for('showEvents'))
         else:
             return render_template('edit_event.html', event=event, error="Place not found")
+        
+# Ensure the app is callable by Vercel
+app = app
 
 @app.route('/events/delete/<_id>', methods=['GET'])
 def deleteEvent(_id):
