@@ -129,7 +129,8 @@ def index():
                 lon = float(location['lon'])
                 events = list(events_collection.find())
                 nearby_events = [event for event in events if calculate_distance(lat, lon, event['lat'], event['lon']) <= 0.3]
-                return render_template('index.html', events=nearby_events, address=address)
+                print(lat, lon)
+                return render_template('index.html', events=nearby_events, address=address, lat=lat, lon=lon)
             else:
                 return render_template('index.html', error="Address not found")
         except requests.exceptions.JSONDecodeError:

@@ -4,6 +4,8 @@
     <title>Eventual</title>
     <!-- Include Bootstrap CSS for styling and modal support -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Include Leaflet CSS for map styling -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
 </head>
 <body>
     <div class="container">
@@ -22,56 +24,74 @@
             </div>
             <button type="submit" class="btn btn-primary">Search</button>
         </form>
-        {% if error %}
-            <div class="alert alert-danger">{{ error }}</div>
-        {% endif %}
-        {% if events %}
-            <h2>Events near {{ address }}</h2>
-            <ul class="list-group">
-                {% for event in events %}
-                    <li class="list-group-item">
-                        <h3>{{ event.name }}</h3>
-                        <p>{{ event.timestamp }}</p>
-                        <p>{{ event.place }}</p>
-                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#eventModal{{ event._id }}">Show Details</button>
-                        {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('editEvent', _id=event._id) }}" class="btn btn-warning">Edit</a>
-                        <a href="{{ url_for('deleteEvent', _id=event._id) }}" class="btn btn-danger">Delete</a>
-                        {% endif %}
-                        
-                        <!-- Modal -->
-                        <div class="modal fade" id="eventModal{{ event._id }}" tabindex="-1" role="dialog" aria-labelledby="eventModalLabel{{ event._id }}" aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="eventModalLabel{{ event._id }}">{{ event.name }}</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p><strong>Timestamp:</strong> {{ event.timestamp }}</p>
-                                        <p><strong>Place:</strong> {{ event.place }}</p>
-                                        <p><strong>Latitude:</strong> {{ event.lat }}</p>
-                                        <p><strong>Longitude:</strong> {{ event.lon }}</p>
-                                        <p><strong>Organizer:</strong> {{ event.organizer }}</p>
-                                        <img src="{{ event.image }}" alt="Event Image" class="img-fluid">
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+
+        <!-- Map container -->
+        <div id="map" style="height: 500px;"></div>
+
+        <h2>Events</h2>
+        <ul>
+            {% for event in events %}
+            <li>
+                <h3>{{ event.name }}</h3>
+                <p>{{ event.timestamp }}</p>
+                <p>{{ event.place }}</p>
+                <p>{{ event.lat }}, {{ event.lon }}</p>
+                <p>{{ event.organizer }}</p>
+                <img src="{{ event.image }}" alt="Event Image">
+                <a href="{{ url_for('editEvent', _id=event._id) }}">Edit</a>
+                <a href="{{ url_for('deleteEvent', _id=event._id) }}">Delete</a>
+            </li>
+            {% endfor %}
+        </ul>
     </div>
 
-    <!-- Include Bootstrap JS and dependencies -->
+    <!-- Include jQuery and Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Include Leaflet JS for map functionality -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+<!-- Initialize Leaflet Maps -->
+<!-- <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll(".map").forEach((mapElement) => {
+        const lat = parseFloat(mapElement.getAttribute("data-lat"));
+        const lng = parseFloat(mapElement.getAttribute("data-lng"));
+
+        // Validate coordinates
+        if (isNaN(lat) || isNaN(lng)) {
+          console.warn(
+            `Latitud o longitud inválida para el mapa: ${mapElement.id}`
+          );
+          return;
+        }
+
+        // Initialize map
+        const mapId = mapElement.id;
+        const map = L.map(mapId).setView([lat, lng], 13);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+        }).addTo(map);
+
+        // Add marker
+        L.marker([lat, lng]).addTo(map);
+      });
+    });
+</script> -->
+
+<!-- Initialize a placeholder leaflet map-->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const lat = parseFloat("{{ lat }}");
+        const lon = parseFloat("{{ lon }}");
+        const map = L.map('map').setView([ lat ,  lon ], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        L.marker([ lat ,  lon ]).addTo(map);
+    });
+</script>
 </body>
 </html>
