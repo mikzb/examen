@@ -17,12 +17,12 @@
         {% else %}
             <a href="{{ url_for('login') }}" class="btn btn-primary">Login with Google</a>
         {% endif %}
-        <form method="POST">
+        <form method="POST" action="{{ url_for('add_marker') }}">
             <div class="form-group">
-                <label for="address">Enter Address:</label>
-                <input type="text" id="address" name="address" class="form-control" required>
+                <label for="new_address">Enter Country or City:</label>
+                <input type="text" id="new_address" name="new_address" class="form-control" required>
             </div>
-            <button type="submit" class="btn btn-primary">Search</button>
+            <button type="submit" class="btn btn-primary">Add Marker</button>
         </form>
 
         <!-- Map container -->
@@ -85,7 +85,7 @@
     document.addEventListener("DOMContentLoaded", () => {
         const lat = parseFloat("{{ lat }}");
         const lon = parseFloat("{{ lon }}");
-        const map = L.map('map').setView([ lat ,  lon ], 13);
+        const map = L.map('map').setView([ 36.7213028 ,  -4.4216366 ], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
         }).addTo(map);

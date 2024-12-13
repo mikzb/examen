@@ -6,3 +6,4 @@ dnspython
 requests # necesario para hacer peticiones a la API de nominatim
 Authlib
 Flask-Login
+cloudinary

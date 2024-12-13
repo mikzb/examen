@@ -60,11 +60,9 @@ class User(UserMixin):
         return User(id_, name, email, profile_pic)
 
 client = pymongo.MongoClient(uri)
-db = client.eventual
+db = client.mimapa
 users_collection = db.users
-events_collection = db.eventos
-# Ensure you have a logs collection in your database
-logs_collection = db.logs
+markers_collection = db.markers
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -84,15 +82,6 @@ def authorize():
     if not user:
         user = User.create(user_info['id'], user_info['name'], user_info['email'], user_info['picture'])
     login_user(user)
-    
-    # Log the login data
-    log_data = {
-        'timestamp': datetime.utcnow(),
-        'user': user.email,
-        'timeout': datetime.utcnow() + timedelta(seconds=token['expires_in']),  # Use the expires_in value from the token
-        'identification_token': token['access_token']
-    }
-    logs_collection.insert_one(log_data)
     
     return redirect(url_for('index'))
 
@@ -220,6 +209,29 @@ def deleteEvent(_id):
 def showLogs():
     logs = list(logs_collection.find().sort('timestamp', pymongo.DESCENDING))
     return render_template('logs.html', logs=logs)
+
+@app.route('/add_marker', methods=['POST'])
+@login_required
+def add_marker():
+    address = request.form['new_address']
+    headers = {
+        'User-Agent': 'EventualApp/1.0 (mikolajzabski@uma.es)'
+    }
+    response = requests.get(f'https://nominatim.openstreetmap.org/search?q={address}&format=json', headers=headers)
+    if response.status_code == 200 and response.json():
+        location = response.json()[0]
+        lat = float(location['lat'])
+        lon = float(location['lon'])
+        marker = {
+            'address': address,
+            'lat': lat,
+            'lon': lon,
+            'user_id': current_user.id
+        }
+        markers_collection.insert_one(marker)
+        return redirect(url_for('index'))
+    else:
+        return "Error: Could not find location", 400
 
 
 if __name__ == '__main__':
