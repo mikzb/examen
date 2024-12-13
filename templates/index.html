@@ -8,6 +8,13 @@
 <body>
     <div class="container">
         <h1>Eventual</h1>
+        {% if current_user.is_authenticated %}
+            <p>Welcome, {{ current_user.name }}!</p>
+            <img src="{{ current_user.profile_pic }}" alt="User Image" class="img-fluid">
+            <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+        {% else %}
+            <a href="{{ url_for('login') }}" class="btn btn-primary">Login with Google</a>
+        {% endif %}
         <form method="POST">
             <div class="form-group">
                 <label for="address">Enter Address:</label>
@@ -15,7 +22,6 @@
             </div>
             <button type="submit" class="btn btn-primary">Search</button>
         </form>
-        <a href="{{ url_for('newEvent') }}">Create New Event</a>
         {% if error %}
             <div class="alert alert-danger">{{ error }}</div>
         {% endif %}
@@ -28,8 +34,10 @@
                         <p>{{ event.timestamp }}</p>
                         <p>{{ event.place }}</p>
                         <button type="button" class="btn btn-info" data-toggle="modal" data-target="#eventModal{{ event._id }}">Show Details</button>
+                        {% if current_user.is_authenticated %}
                         <a href="{{ url_for('editEvent', _id=event._id) }}" class="btn btn-warning">Edit</a>
                         <a href="{{ url_for('deleteEvent', _id=event._id) }}" class="btn btn-danger">Delete</a>
+                        {% endif %}
                         
                         <!-- Modal -->
                         <div class="modal fade" id="eventModal{{ event._id }}" tabindex="-1" role="dialog" aria-labelledby="eventModalLabel{{ event._id }}" aria-hidden="true">
