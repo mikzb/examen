@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Colaboradores</title>
+</head>
+<body>
+    <h1>Colaboradores</h1>
+    <a href="{{ url_for('newColaborador') }}">Crear Nuevo Colaborador</a>
+    <ul>
+        {% for colaborador in colaboradores %}
+        <li>
+            <h2>{{ colaborador.nombre }}</h2>
+            <p>Email: {{ colaborador.email }}</p>
+            <p>Habilidades: {{ colaborador.habilidades | join(', ') }}</p>
+            <a href="{{ url_for('editColaborador', _id=colaborador._id) }}">Editar</a>
+            <a href="{{ url_for('deleteColaborador', _id=colaborador._id) }}">Eliminar</a>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

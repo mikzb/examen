@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Editar Colaborador</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Editar Colaborador</h1>
+        <form method="POST">
+            <div class="form-group">
+                <label for="inputEmail">Email:</label>
+                <input type="email" id="inputEmail" name="inputEmail" class="form-control" value="{{ colaborador.email }}" required>
+            </div>
+            <div class="form-group">
+                <label for="inputNombre">Nombre:</label>
+                <input type="text" id="inputNombre" name="inputNombre" class="form-control" value="{{ colaborador.nombre }}" required>
+            </div>
+            <div class="form-group">
+                <label for="inputHabilidades">Habilidades:</label>
+                <input type="text" id="inputHabilidades" name="inputHabilidades" class="form-control" value="{{ colaborador.habilidades | join(', ') }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+        </form>
+
+        <h2>Habilidades</h2>
+        <ul>
+            {% for habilidad in colaborador.habilidades %}
+            <li>
+                {{ habilidad }}
+                <form method="POST" action="{{ url_for('deleteHabilidad', _id=colaborador._id) }}" style="display:inline;">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="hidden" name="habilidad" value="{{ habilidad }}">
+                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <h3>Añadir Habilidad</h3>
+        <form method="POST" action="{{ url_for('addHabilidad', _id=colaborador._id) }}">
+            <div class="form-group">
+                <label for="nuevaHabilidad">Nueva Habilidad:</label>
+                <input type="text" id="nuevaHabilidad" name="habilidad" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Añadir</button>
+        </form>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nueva Tarea</title>
+    <!-- Include Bootstrap CSS for styling -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Nueva Tarea</h1>
+        <form method="POST">
+            <div class="form-group">
+                <label for="inputResponsable">Responsable (Email):</label>
+                <input type="email" id="inputResponsable" name="inputResponsable" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="inputDescripcion">Descripción:</label>
+                <input type="text" id="inputDescripcion" name="inputDescripcion" class="form-control" maxlength="50" required>
+            </div>
+            <div class="form-group">
+                <label for="inputHabilidades">Habilidades:</label>
+                <input type="text" id="inputHabilidades" name="inputHabilidades" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="inputSegmentos">Segmentos (Horas):</label>
+                <input type="number" id="inputSegmentos" name="inputSegmentos" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Enviar</button>
+        </form>
+        {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+    </div>
+
+    <!-- Include Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

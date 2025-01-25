@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tareas</title>
+</head>
+<body>
+    <h1>Tareas</h1>
+    <a href="{{ url_for('newTarea') }}">Crear Nueva Tarea</a>
+    <ul>
+        {% for task in tasks %}
+        <li>
+            <h2>{{ task.descripcion }}</h2>
+            <p>Responsable: {{ task.responsable }}</p>
+            <p>Habilidades: {{ task.habilidades | join(', ') }}</p>
+            <p>Segmentos: {{ task.segmentos }}</p>
+            <a href="{{ url_for('editTarea', _id=task._id) }}">Editar</a>
+            <a href="{{ url_for('deleteTarea', _id=task._id) }}">Eliminar</a>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
