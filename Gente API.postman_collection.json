@@ -1,0 +1,589 @@
+{
+	"info": {
+		"_postman_id": "c9704103-d5cb-4a6d-9c2c-95615c009509",
+		"name": "Gente API",
+		"description": "API REST para gestionar tareas y colaboradores en Gente",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39538410"
+	},
+	"item": [
+		{
+			"name": "Tareas",
+			"item": [
+				{
+					"name": "Get All Tareas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/tareas",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"tareas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tarea",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/tareas/:id",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"tareas",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{tarea_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Tarea",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"responsable\": \"responsable@example.com\",\r\n  \"descripcion\": \"Descripción breve de la tarea\",\r\n  \"habilidades\": [\"Python\", \"Flask\", \"MongoDB\"],\r\n  \"segmentos\": 5,\r\n  \"colaboradores\": [\"colaborador1@example.com\", \"colaborador2@example.com\"]\r\n}"
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/tareas",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"tareas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Tarea",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"responsable\": \"responsable@example.com\",\r\n  \"descripcion\": \"Descripción algo mas largargarga de la tarea\",\r\n  \"habilidades\": [\"Python\", \"Flask\", \"MongoDB\"],\r\n  \"segmentos\": 5,\r\n  \"colaboradores\": [\"colaborador1@example.com\", \"colaborador2@example.com\"]\r\n}"
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/tareas/:id",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"tareas",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{tarea_id_edit}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Tarea",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/tareas/:id",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"tareas",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{tarea_id_edit}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tareas by Habilidad",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/tareas/habilidad/:habilidad",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"tareas",
+								"habilidad",
+								":habilidad"
+							],
+							"variable": [
+								{
+									"key": "habilidad",
+									"value": "skill1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tareas by Colaborador",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/tareas/colaborador/:colaborador_id",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"tareas",
+								"colaborador",
+								":colaborador_id"
+							],
+							"variable": [
+								{
+									"key": "colaborador_id",
+									"value": "{{colaborador_resp_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Assign Colaborador to Tarea",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/tareas/:tarea_id/asignar/:colaborador_id",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"tareas",
+								":tarea_id",
+								"asignar",
+								":colaborador_id"
+							],
+							"variable": [
+								{
+									"key": "tarea_id",
+									"value": "{{tarea_id}}"
+								},
+								{
+									"key": "colaborador_id",
+									"value": "{{colaborador_resp_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Candidatos for Tarea",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/tareas/:tarea_id/candidatos",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"tareas",
+								":tarea_id",
+								"candidatos"
+							],
+							"variable": [
+								{
+									"key": "tarea_id",
+									"value": "{{tarea_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Completamente Asignadas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/tareas/completamente_asignadas",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"tareas",
+								"completamente_asignadas"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Colaboradores",
+			"item": [
+				{
+					"name": "Get All Colaboradores",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/colaboradores",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"colaboradores"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Colaborador",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/colaboradores/:id",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"colaboradores",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{colaborador_resp_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Colaborador",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"colaborador1@example.com\",\r\n  \"nombre\": \"Nombre del Colaborador\",\r\n  \"habilidades\": [\"Python\", \"Flask\", \"MongoDB\"]\r\n}"
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/colaboradores",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"colaboradores"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Colaborador",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/colaboradores/:id",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"colaboradores",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{colaborador_id_delete}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Habilidades",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/colaboradores/:id/habilidades",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"colaboradores",
+								":id",
+								"habilidades"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{colaborador_resp_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Habilidad",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"habilidad\": \"HABILIDAD\"}"
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/colaboradores/:id/habilidades",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"colaboradores",
+								":id",
+								"habilidades"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{colaborador_resp_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Habilidad",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"habilidad\": \"HABILIDAD\"}"
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/colaboradores/:id/habilidades",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"colaboradores",
+								":id",
+								"habilidades"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{colaborador_resp_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Colaboradores by Responsable",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/colaboradores/responsable/:email",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"colaboradores",
+								"responsable",
+								":email"
+							],
+							"variable": [
+								{
+									"key": "email",
+									"value": "{{colaborador_resp_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

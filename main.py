@@ -1,10 +1,7 @@
 import pymongo
 from environs import Env
 from bson import ObjectId
-from flask import Flask, request, redirect, url_for, jsonify
-from datetime import datetime
-import requests
-from math import radians, cos, sin, sqrt, atan2
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
@@ -20,194 +17,175 @@ db = client.gente
 tareas_collection = db.tareas
 colaboradores_collection = db.colaboradores
 
-
-@app.route('/', methods=['GET'])
-def index():
-    return jsonify({'message': 'Welcome to the API'})
-
-
+# CRUD de tareas
 @app.route('/tareas', methods=['GET'])
-def showTareas():
+def get_all_tareas():
     tareas = list(tareas_collection.find())
     for tarea in tareas:
+        tarea['_id'] = str(tarea['_id'])
         if 'colaboradores' in tarea:
-            tarea['colaboradores_nombres'] = []
-            for colaborador_id in tarea['colaboradores']:
-                colaborador = colaboradores_collection.find_one({'_id': ObjectId(colaborador_id)})
-                if colaborador:
-                    tarea['colaboradores_nombres'].append(colaborador['nombre'])
+            tarea['colaboradores'] = [str(colaborador) for colaborador in tarea['colaboradores']]
     return jsonify(tareas)
 
+@app.route('/tareas/<id>', methods=['GET'])
+def get_tarea(id):
+    tarea = tareas_collection.find_one({'_id': ObjectId(id)})
+    if tarea:
+        tarea['_id'] = str(tarea['_id'])
+        if 'colaboradores' in tarea:
+            tarea['colaboradores'] = [str(colaborador) for colaborador in tarea['colaboradores']]
+        return jsonify(tarea)
+    return jsonify({'error': 'Tarea no encontrada'}), 404
 
-@app.route('/tareas/new', methods=['POST'])
-def newTarea():
-    task = {
-        'responsable': request.form['inputResponsable'],
-        'descripcion': request.form['inputDescripcion'],
-        'habilidades': request.form['inputHabilidades'].split(','),  # Split habilidades into a list
-        'segmentos': request.form['inputSegmentos'],
-    }
-    tareas_collection.insert_one(task)
-    return jsonify({'message': 'Task created successfully'}), 201
+@app.route('/tareas', methods=['POST'])
+def create_tarea():
+    data = request.json
+    tarea_id = tareas_collection.insert_one(data).inserted_id
+    return jsonify({'_id': str(tarea_id)}), 201
 
+@app.route('/tareas/<id>', methods=['PUT'])
+def update_tarea(id):
+    data = request.json
+    result = tareas_collection.update_one({'_id': ObjectId(id)}, {'$set': data})
+    if result.matched_count:
+        return jsonify({'message': 'Tarea actualizada'})
+    return jsonify({'error': 'Tarea no encontrada'}), 404
 
-@app.route('/tareas/edit/<_id>', methods=['POST'])
-def editTarea(_id):
-    tarea = {
-        'responsable': request.form['inputResponsable'],
-        'descripcion': request.form['inputDescripcion'],
-        'habilidades': request.form['inputHabilidades'].split(','),  # Split habilidades into a list
-        'segmentos': request.form['inputSegmentos'],
-    }
-    tareas_collection.update_one({'_id': ObjectId(_id)}, {'$set': tarea})
-    return jsonify({'message': 'Task updated successfully'})
+@app.route('/tareas/<id>', methods=['DELETE'])
+def delete_tarea(id):
+    result = tareas_collection.delete_one({'_id': ObjectId(id)})
+    if result.deleted_count:
+        return jsonify({'message': 'Tarea eliminada'})
+    return jsonify({'error': 'Tarea no encontrada'}), 404
 
-
-@app.route('/tareas/delete/<_id>', methods=['DELETE'])
-def deleteTarea(_id):
-    tareas_collection.delete_one({'_id': ObjectId(_id)})
-    return jsonify({'message': 'Task deleted successfully'})
-
-
-# CRUD de Colaboradores
+# CRUD de colaboradores
 @app.route('/colaboradores', methods=['GET'])
-def showColaboradores():
+def get_all_colaboradores():
     colaboradores = list(colaboradores_collection.find())
+    for colaborador in colaboradores:
+        colaborador['_id'] = str(colaborador['_id'])
     return jsonify(colaboradores)
 
-
-@app.route('/colaboradores/new', methods=['POST'])
-def newColaborador():
-    colaborador = {
-        'email': request.form['inputEmail'],
-        'nombre': request.form['inputNombre'],
-        'habilidades': request.form['inputHabilidades'].split(','),  # Split habilidades into a list
-    }
-    colaboradores_collection.insert_one(colaborador)
-    return jsonify({'message': 'Collaborator created successfully'}), 201
-
-
-@app.route('/colaboradores/edit/<_id>', methods=['POST'])
-def editColaborador(_id):
-    colaborador = {
-        'email': request.form['inputEmail'],
-        'nombre': request.form['inputNombre'],
-        'habilidades': request.form['inputHabilidades'].split(','),  # Split habilidades into a list
-    }
-    colaboradores_collection.update_one({'_id': ObjectId(_id)}, {'$set': colaborador})
-    return jsonify({'message': 'Collaborator updated successfully'})
-
-
-@app.route('/colaboradores/delete/<_id>', methods=['DELETE'])
-def deleteColaborador(_id):
-    colaboradores_collection.delete_one({'_id': ObjectId(_id)})
-    return jsonify({'message': 'Collaborator deleted successfully'})
-
-
-@app.route('/colaboradores/<_id>/habilidades', methods=['GET'])
-def getHabilidades(_id):
-    colaborador = colaboradores_collection.find_one({'_id': ObjectId(_id)})
+@app.route('/colaboradores/<id>', methods=['GET'])
+def get_colaborador(id):
+    colaborador = colaboradores_collection.find_one({'_id': ObjectId(id)})
     if colaborador:
-        return jsonify({'habilidades': colaborador.get('habilidades', [])})
-    else:
-        return jsonify({'error': 'Colaborador no encontrado'}), 404
+        colaborador['_id'] = str(colaborador['_id'])
+        return jsonify(colaborador)
+    return jsonify({'error': 'Colaborador no encontrado'}), 404
 
+@app.route('/colaboradores', methods=['POST'])
+def create_colaborador():
+    data = request.json
+    colaborador_id = colaboradores_collection.insert_one(data).inserted_id
+    return jsonify({'_id': str(colaborador_id)}), 201
 
-@app.route('/colaboradores/<_id>/habilidades/add', methods=['POST'])
-def addHabilidad(_id):
-    habilidad = request.form['habilidad']
-    colaboradores_collection.update_one(
-        {'_id': ObjectId(_id)},
-        {'$addToSet': {'habilidades': habilidad}}
-    )
-    return jsonify({'message': 'Habilidad added successfully'})
+@app.route('/colaboradores/<id>', methods=['DELETE'])
+def delete_colaborador(id):
+    result = colaboradores_collection.delete_one({'_id': ObjectId(id)})
+    if result.deleted_count:
+        return jsonify({'message': 'Colaborador eliminado'})
+    return jsonify({'error': 'Colaborador no encontrado'}), 404
 
+# CRUD de habilidades de un colaborador
+@app.route('/colaboradores/<id>/habilidades', methods=['GET'])
+def get_all_habilidades(id):
+    colaborador = colaboradores_collection.find_one({'_id': ObjectId(id)}, {'habilidades': 1})
+    if colaborador:
+        return jsonify(colaborador.get('habilidades', []))
+    return jsonify({'error': 'Colaborador no encontrado'}), 404
 
-@app.route('/colaboradores/<_id>/habilidades/delete', methods=['POST'])
-def deleteHabilidad(_id):
-    if request.form.get('_method') == 'DELETE':
-        habilidad = request.form['habilidad']
-        colaboradores_collection.update_one(
-            {'_id': ObjectId(_id)},
-            {'$pull': {'habilidades': habilidad}}
-        )
-        return jsonify({'message': 'Habilidad deleted successfully'})
-    else:
-        habilidad = request.form['habilidad']
-        colaboradores_collection.update_one(
-            {'_id': ObjectId(_id)},
-            {'$addToSet': {'habilidades': habilidad}}
-        )
-        return jsonify({'message': 'Habilidad added successfully'})
+@app.route('/colaboradores/<id>/habilidades', methods=['POST'])
+def add_habilidad(id):
+    data = request.json
+    habilidad = data.get('habilidad')
+    if habilidad:
+        result = colaboradores_collection.update_one({'_id': ObjectId(id)}, {'$addToSet': {'habilidades': habilidad}})
+        if result.matched_count:
+            return jsonify({'message': 'Habilidad añadida'})
+    return jsonify({'error': 'Colaborador no encontrado o habilidad no proporcionada'}), 404
 
+@app.route('/colaboradores/<id>/habilidades', methods=['DELETE'])
+def delete_habilidad(id):
+    data = request.json
+    habilidad = data.get('habilidad')
+    if habilidad:
+        result = colaboradores_collection.update_one({'_id': ObjectId(id)}, {'$pull': {'habilidades': habilidad}})
+        if result.matched_count:
+            return jsonify({'message': 'Habilidad eliminada'})
+    return jsonify({'error': 'Colaborador no encontrado o habilidad no proporcionada'}), 404
+
+# Nuevas funcionalidades
 
 @app.route('/tareas/habilidad/<habilidad>', methods=['GET'])
-def getTareasByHabilidad(habilidad):
+def get_tareas_by_habilidad(habilidad):
     tareas = list(tareas_collection.find({'habilidades': habilidad}))
+    for tarea in tareas:
+        tarea['_id'] = str(tarea['_id'])
+        if 'colaboradores' in tarea:
+            tarea['colaboradores'] = [str(colaborador) for colaborador in tarea['colaboradores']]
     return jsonify(tareas)
 
-
-@app.route('/tareas/colaborador/<_id>', methods=['GET'])
-def getTareasByColaborador(_id):
-    colaborador = colaboradores_collection.find_one({'_id': ObjectId(_id)})
-    if colaborador:
-        tareas = list(tareas_collection.find({'colaboradores': ObjectId(_id)}))
-        return jsonify(tareas)
-    else:
-        return jsonify({'error': 'Colaborador no encontrado'}), 404
-
-
-@app.route('/tareas/asignar/<_id>', methods=['POST'])
-def asignarColaborador(_id):
-    colaborador_id = request.form['colaborador_id']
-    colaborador = colaboradores_collection.find_one({'_id': ObjectId(colaborador_id)})
-    tarea = tareas_collection.find_one({'_id': ObjectId(_id)})
-
-    if not colaborador or not tarea:
-        return jsonify({'error': 'Colaborador o tarea no encontrado'}), 404
-
-    # Check if the collaborator has at least one of the required skills
-    if not any(habilidad in colaborador['habilidades'] for habilidad in tarea['habilidades']):
-        return jsonify({'error': 'El colaborador no posee ninguna de las habilidades requeridas'}), 400
-
-    # Assign the collaborator to the task
-    tareas_collection.update_one(
-        {'_id': ObjectId(_id)},
-        {'$addToSet': {'colaboradores': ObjectId(colaborador_id)}}
-    )
-    return jsonify({'message': 'Colaborador assigned to task successfully'})
-
-
-@app.route('/tareas/<_id>/candidatos', methods=['POST'])
-def getCandidatos(_id):
-    tarea = tareas_collection.find_one({'_id': ObjectId(_id)})
-    colaboradores = list(colaboradores_collection.find())
-    candidatos = []
-    for colaborador in colaboradores:
-        if any(habilidad in colaborador['habilidades'] for habilidad in tarea['habilidades']):
-            candidatos.append(colaborador)
-    return jsonify({'candidatos': candidatos, 'tarea': tarea})
-
-
-@app.route('/colaboradores/responsable/<responsable_email>', methods=['GET'])
-def getColaboradoresByResponsable(responsable_email):
-    # Find tasks for which the user is responsible
-    tareas = list(tareas_collection.find({'responsable': responsable_email}))
-
-    # Collect the emails of collaborators assigned to those tasks
-    colaborador_ids = set()
+@app.route('/tareas/colaborador/<colaborador_id>', methods=['GET'])
+def get_tareas_by_colaborador(colaborador_id):
+    tareas = list(tareas_collection.find({'colaboradores': ObjectId(colaborador_id)}))
     for tarea in tareas:
+        tarea['_id'] = str(tarea['_id'])
         if 'colaboradores' in tarea:
-            colaborador_ids.update(tarea['colaboradores'])
+            tarea['colaboradores'] = [str(colaborador) for colaborador in tarea['colaboradores']]
+    return jsonify(tareas)
 
-    # Find the collaborators by their IDs
-    colaboradores = colaboradores_collection.find({'_id': {'$in': list(colaborador_ids)}})
+@app.route('/tareas/<tarea_id>/asignar/<colaborador_id>', methods=['POST'])
+def assign_colaborador_to_tarea(tarea_id, colaborador_id):
+    tarea = tareas_collection.find_one({'_id': ObjectId(tarea_id)})
+    colaborador = colaboradores_collection.find_one({'_id': ObjectId(colaborador_id)})
+    if tarea and colaborador:
+        if any(habilidad in colaborador.get('habilidades', []) for habilidad in tarea.get('habilidades', [])):
+            result = tareas_collection.update_one({'_id': ObjectId(tarea_id)}, {'$addToSet': {'colaboradores': ObjectId(colaborador_id)}})
+            if result.matched_count:
+                return jsonify({'message': 'Colaborador asignado a la tarea'})
+        return jsonify({'error': 'El colaborador no posee las habilidades requeridas'}), 400
+    return jsonify({'error': 'Tarea o colaborador no encontrado'}), 404
 
-    # Collect the emails of the collaborators
+@app.route('/tareas/<tarea_id>/candidatos', methods=['GET'])
+def get_candidatos_for_tarea(tarea_id):
+    tarea = tareas_collection.find_one({'_id': ObjectId(tarea_id)})
+    if tarea:
+        habilidades = tarea.get('habilidades', [])
+        candidatos = colaboradores_collection.find({'habilidades': {'$in': habilidades}})
+        emails = [candidato['email'] for candidato in candidatos]
+        return jsonify(emails)
+    return jsonify({'error': 'Tarea no encontrada'}), 404
+
+@app.route('/tareas/completamente_asignadas', methods=['GET'])
+def get_completamente_asignadas():
+    pipeline = [
+        {
+            '$addFields': {
+                'num_colaboradores': {'$size': {'$ifNull': ['$colaboradores', []]}}
+            }
+        },
+        {
+            '$match': {
+                '$expr': {'$eq': ['$num_colaboradores', '$segmentos']}
+            }
+        }
+    ]
+    tareas = list(tareas_collection.aggregate(pipeline))
+    for tarea in tareas:
+        tarea['_id'] = str(tarea['_id'])
+        if 'colaboradores' in tarea:
+            tarea['colaboradores'] = [str(colaborador) for colaborador in tarea['colaboradores']]
+    return jsonify(tareas)
+
+@app.route('/colaboradores/responsable/<email>', methods=['GET'])
+def get_colaboradores_by_responsable(email):
+    tareas = list(tareas_collection.find({'responsable': email}))
+    colaboradores_ids = set()
+    for tarea in tareas:
+        colaboradores_ids.update(tarea.get('colaboradores', []))
+    colaboradores = colaboradores_collection.find({'_id': {'$in': list(colaboradores_ids)}})
     emails = [colaborador['email'] for colaborador in colaboradores]
-
-    return jsonify({'emails': emails})
-
-
+    return jsonify(emails)
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=8000, debug=True)
