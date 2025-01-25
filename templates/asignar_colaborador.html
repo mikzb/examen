@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Asignar Colaborador</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Asignar Colaborador a Tarea</h1>
+        <form method="POST">
+            <div class="form-group">
+                <label for="inputDescripcion">Descripción de la Tarea:</label>
+                <input type="text" id="inputDescripcion" name="inputDescripcion" class="form-control" value="{{ tarea.descripcion }}" readonly>
+            </div>
+            <div class="form-group">
+                <label for="inputHabilidades">Habilidades Requeridas:</label>
+                <input type="text" id="inputHabilidades" name="inputHabilidades" class="form-control" value="{{ tarea.habilidades | join(', ') }}" readonly>
+            </div>
+            <div class="form-group">
+                <label for="colaborador_id">Seleccionar Colaborador:</label>
+                <select id="colaborador_id" name="colaborador_id" class="form-control" required>
+                    {% for colaborador in colaboradores %}
+                        <option value="{{ colaborador._id }}">{{ colaborador.nombre }} ({{ colaborador.habilidades | join(', ') }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Asignar</button>
+        </form>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

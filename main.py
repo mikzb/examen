@@ -28,6 +28,13 @@ def index():
 @app.route('/tareas', methods=['GET'])
 def showTareas():
     tareas = list(tareas_collection.find())
+    for tarea in tareas:
+        if 'colaboradores' in tarea:
+            tarea['colaboradores_nombres'] = []
+            for colaborador_id in tarea['colaboradores']:
+                colaborador = colaboradores_collection.find_one({'_id': ObjectId(colaborador_id)})
+                if colaborador:
+                    tarea['colaboradores_nombres'].append(colaborador['nombre'])
     return render_template('tasks.html', tasks=tareas)
 
 @app.route('/tareas/new', methods=['GET', 'POST'])
@@ -110,7 +117,7 @@ def getHabilidades(_id):
     else:
         return {'error': 'Colaborador no encontrado'}, 404
 
-@app.route('/colaboradores/<_id>/habilidades', methods=['POST'])
+@app.route('/colaboradores/<_id>/habilidades/add', methods=['POST'])
 def addHabilidad(_id):
     habilidad = request.form['habilidad']
     colaboradores_collection.update_one(
@@ -119,7 +126,7 @@ def addHabilidad(_id):
     )
     return redirect(url_for('editColaborador', _id=_id))
 
-@app.route('/colaboradores/<_id>/habilidades', methods=['POST'])
+@app.route('/colaboradores/<_id>/habilidades/delete', methods=['POST'])
 def deleteHabilidad(_id):
     if request.form.get('_method') == 'DELETE':
         habilidad = request.form['habilidad']
@@ -134,6 +141,74 @@ def deleteHabilidad(_id):
             {'$addToSet': {'habilidades': habilidad}}
         )
     return redirect(url_for('editColaborador', _id=_id))
+
+@app.route('/tareas/habilidad/<habilidad>', methods=['GET'])
+def getTareasByHabilidad(habilidad):
+    tareas = list(tareas_collection.find({'habilidades': habilidad}))
+    return render_template('tasks.html', tasks=tareas)
+
+@app.route('/tareas/colaborador/<_id>', methods=['GET'])
+def getTareasByColaborador(_id):
+    colaborador = colaboradores_collection.find_one({'_id': ObjectId(_id)})
+    if colaborador:
+        tareas = list(tareas_collection.find({'colaboradores': ObjectId(_id)}))
+        return render_template('tasks.html', tasks=tareas)
+    else:
+        return {'error': 'Colaborador no encontrado'}, 404
+
+@app.route('/tareas/asignar/<_id>', methods=['GET', 'POST'])
+def asignarColaborador(_id):
+    if request.method == 'GET':
+        tarea = tareas_collection.find_one({'_id': ObjectId(_id)})
+        colaboradores = list(colaboradores_collection.find())
+        return render_template('asignar_colaborador.html', tarea=tarea, colaboradores=colaboradores)
+    else:
+        colaborador_id = request.form['colaborador_id']
+        colaborador = colaboradores_collection.find_one({'_id': ObjectId(colaborador_id)})
+        tarea = tareas_collection.find_one({'_id': ObjectId(_id)})
+
+        if not colaborador or not tarea:
+            return {'error': 'Colaborador o tarea no encontrado'}, 404
+
+        # Check if the collaborator has at least one of the required skills
+        if not any(habilidad in colaborador['habilidades'] for habilidad in tarea['habilidades']):
+            return {'error': 'El colaborador no posee ninguna de las habilidades requeridas'}, 400
+
+        # Assign the collaborator to the task
+        tareas_collection.update_one(
+            {'_id': ObjectId(_id)},
+            {'$addToSet': {'colaboradores': ObjectId(colaborador_id)}}
+        )
+        return redirect(url_for('showTareas'))
+    
+@app.route('/tareas/<_id>/candidatos', methods=['POST'])
+def getCandidatos(_id):
+    tarea = tareas_collection.find_one({'_id': ObjectId(_id)})
+    colaboradores = list(colaboradores_collection.find())
+    candidatos = []
+    for colaborador in colaboradores:
+        if any(habilidad in colaborador['habilidades'] for habilidad in tarea['habilidades']):
+            candidatos.append(colaborador)
+    return render_template('candidatos.html', candidatos=candidatos, tarea=tarea)
+
+@app.route('/colaboradores/responsable/<responsable_email>', methods=['GET'])
+def getColaboradoresByResponsable(responsable_email):
+    # Find tasks for which the user is responsible
+    tareas = list(tareas_collection.find({'responsable': responsable_email}))
+    
+    # Collect the emails of collaborators assigned to those tasks
+    colaborador_ids = set()
+    for tarea in tareas:
+        if 'colaboradores' in tarea:
+            colaborador_ids.update(tarea['colaboradores'])
+    
+    # Find the collaborators by their IDs
+    colaboradores = colaboradores_collection.find({'_id': {'$in': list(colaborador_ids)}})
+    
+    # Collect the emails of the collaborators
+    emails = [colaborador['email'] for colaborador in colaboradores]
+    
+    return {'emails': emails}
 
 
 if __name__ == '__main__':
