@@ -16,112 +16,125 @@ uri = env('MONGO_URI')  # MongoDB URI from environment variable
 print("MONGO_URI: ", uri)
 
 client = pymongo.MongoClient(uri)
-db = client.eventual
-events_collection = db.eventos
-
-def calculate_distance(lat1, lon1, lat2, lon2):
-     # Convert latitude and longitude from degrees to radians
-     lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
-     # Haversine formula
-     dlon = lon2 - lon1
-     dlat = lat2 - lat1
-     a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
-     c = 2 * atan2(sqrt(a), sqrt(1 - a))
-     distance = 6371 * c  # Radius of Earth in kilometers
-     return distance
+db = client.gente
+tareas_collection = db.tareas
+colaboradores_collection = db.colaboradores
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET'])
 def index():
-    if request.method == 'POST':
-        address = request.form['address']
-        headers = {
-            'User-Agent': 'EventualApp/1.0 (mikolajzabski@uma.es)'
-        }
-        response = requests.get(f'https://nominatim.openstreetmap.org/search?q={address}&format=json', headers=headers)
-        try:
-            response_json = response.json()
-            if response.status_code == 200 and response_json:
-                location = response_json[0]
-                lat = float(location['lat'])
-                lon = float(location['lon'])
-                events = list(events_collection.find())
-                nearby_events = [event for event in events if calculate_distance(lat, lon, event['lat'], event['lon']) <= 0.3]
-                # print distance between address and events for debugging
-                return render_template('index.html', events=nearby_events, address=address)
-            else:
-                return render_template('index.html', error="Address not found")
-        except requests.exceptions.JSONDecodeError:
-            print("Error decoding JSON response")
-            return render_template('index.html', error="Error decoding JSON response")
-    return render_template('index.html')
+    return render_template('menu.html')
 
-@app.route('/events', methods=['GET'])
-def showEvents():
-    events = list(events_collection.find().sort('timestamp', pymongo.DESCENDING))
-    return render_template('events.html', events=events)
+@app.route('/tareas', methods=['GET'])
+def showTareas():
+    tareas = list(tareas_collection.find())
+    return render_template('tasks.html', tasks=tareas)
 
-@app.route('/events/new', methods=['GET', 'POST'])
-def newEvent():
+@app.route('/tareas/new', methods=['GET', 'POST'])
+def newTarea():
     if request.method == 'GET':
-        return render_template('new_event.html')
+        return render_template('new_tarea.html')
     else:
-        place = request.form['inputPlace']
-        headers = {
-            'User-Agent': 'EventualApp/1.0 (mikolajzabski@uma.es)'
+        task = {
+            'responsable': request.form['inputResponsable'],
+            'descripcion': request.form['inputDescripcion'],
+            'habilidades': request.form['inputHabilidades'].split(','),  # Split habilidades into a list
+            'segmentos': request.form['inputSegmentos'],
         }
-        response = requests.get(f'https://nominatim.openstreetmap.org/search?q={place}&format=json', headers=headers)
-        if response.status_code == 200 and response.json():
-            location = response.json()[0]
-            lat = float(location['lat'])
-            lon = float(location['lon'])
-            event = {
-                'name': request.form['inputName'],
-                'timestamp': datetime.strptime(request.form['inputTimestamp'], '%Y-%m-%dT%H:%M'),
-                'place': place,
-                'lat': lat,
-                'lon': lon,
-                'organizer': request.form['inputOrganizer'],
-                'image': request.form['inputImage']
-            }
-            events_collection.insert_one(event)
-            return redirect(url_for('showEvents'))
-        else:
-            return render_template('new_event.html', error="Place not found")
-
-@app.route('/events/edit/<_id>', methods=['GET', 'POST'])
-def editEvent(_id):
+        tareas_collection.insert_one(task)
+        return redirect(url_for('showTareas'))
+    
+@app.route('/tareas/edit/<_id>', methods=['GET', 'POST'])
+def editTarea(_id):
     if request.method == 'GET':
-        event = events_collection.find_one({'_id': ObjectId(_id)})
-        return render_template('edit_event.html', event=event)
+        tarea = tareas_collection.find_one({'_id': ObjectId(_id)})
+        return render_template('edit_tarea.html', tarea=tarea)
     else:
-        place = request.form['inputPlace']
-        headers = {
-            'User-Agent': 'EventualApp/1.0 (mikolajzabski@uma.es)'
+        tarea = {
+            'responsable': request.form['inputResponsable'],
+            'descripcion': request.form['inputDescripcion'],
+            'habilidades': request.form['inputHabilidades'].split(','),  # Split habilidades into a list
+            'segmentos': request.form['inputSegmentos'],
         }
-        response = requests.get(f'https://nominatim.openstreetmap.org/search?q={place}&format=json', headers=headers)
-        if response.status_code == 200 and response.json():
-            location = response.json()[0]
-            lat = float(location['lat'])
-            lon = float(location['lon'])
-            event = {
-                'name': request.form['inputName'],
-                'timestamp': datetime.strptime(request.form['inputTimestamp'], '%Y-%m-%dT%H:%M'),
-                'place': place,
-                'lat': lat,
-                'lon': lon,
-                'organizer': request.form['inputOrganizer'],
-                'image': request.form['inputImage']
-            }
-            events_collection.update_one({'_id': ObjectId(_id)}, {'$set': event})
-            return redirect(url_for('showEvents'))
-        else:
-            return render_template('edit_event.html', event=event, error="Place not found")
+        tareas_collection.update_one({'_id': ObjectId(_id)}, {'$set': tarea})
+        return redirect(url_for('showTareas'))
 
-@app.route('/events/delete/<_id>', methods=['GET'])
-def deleteEvent(_id):
-    events_collection.delete_one({'_id': ObjectId(_id)})
-    return redirect(url_for('showEvents'))
+@app.route('/tareas/delete/<_id>', methods=['GET'])
+def deleteTarea(_id):
+    tareas_collection.delete_one({'_id': ObjectId(_id)})
+    return redirect(url_for('showTareas'))
+
+# CRUD de Colaboradores
+@app.route('/colaboradores', methods=['GET'])
+def showColaboradores():
+    colaboradores = list(colaboradores_collection.find())
+    return render_template('colaboradores.html', colaboradores=colaboradores)
+
+@app.route('/colaboradores/new', methods=['GET', 'POST'])
+def newColaborador():
+    if request.method == 'GET':
+        return render_template('new_colaborador.html')
+    else:
+        colaborador = {
+            'email': request.form['inputEmail'],
+            'nombre': request.form['inputNombre'],
+            'habilidades': request.form['inputHabilidades'].split(','),  # Split habilidades into a list
+        }
+        colaboradores_collection.insert_one(colaborador)
+        return redirect(url_for('showColaboradores'))
+
+@app.route('/colaboradores/edit/<_id>', methods=['GET', 'POST'])
+def editColaborador(_id):
+    if request.method == 'GET':
+        colaborador = colaboradores_collection.find_one({'_id': ObjectId(_id)})
+        return render_template('edit_colaborador.html', colaborador=colaborador)
+    else:
+        colaborador = {
+            'email': request.form['inputEmail'],
+            'nombre': request.form['inputNombre'],
+            'habilidades': request.form['inputHabilidades'].split(','),  # Split habilidades into a list
+        }
+        colaboradores_collection.update_one({'_id': ObjectId(_id)}, {'$set': colaborador})
+        return redirect(url_for('showColaboradores'))
+
+@app.route('/colaboradores/delete/<_id>', methods=['GET'])
+def deleteColaborador(_id):
+    colaboradores_collection.delete_one({'_id': ObjectId(_id)})
+    return redirect(url_for('showColaboradores'))
+
+@app.route('/colaboradores/<_id>/habilidades', methods=['GET'])
+def getHabilidades(_id):
+    colaborador = colaboradores_collection.find_one({'_id': ObjectId(_id)})
+    if colaborador:
+        return {'habilidades': colaborador.get('habilidades', [])}
+    else:
+        return {'error': 'Colaborador no encontrado'}, 404
+
+@app.route('/colaboradores/<_id>/habilidades', methods=['POST'])
+def addHabilidad(_id):
+    habilidad = request.form['habilidad']
+    colaboradores_collection.update_one(
+        {'_id': ObjectId(_id)},
+        {'$addToSet': {'habilidades': habilidad}}
+    )
+    return redirect(url_for('editColaborador', _id=_id))
+
+@app.route('/colaboradores/<_id>/habilidades', methods=['POST'])
+def deleteHabilidad(_id):
+    if request.form.get('_method') == 'DELETE':
+        habilidad = request.form['habilidad']
+        colaboradores_collection.update_one(
+            {'_id': ObjectId(_id)},
+            {'$pull': {'habilidades': habilidad}}
+        )
+    else:
+        habilidad = request.form['habilidad']
+        colaboradores_collection.update_one(
+            {'_id': ObjectId(_id)},
+            {'$addToSet': {'habilidades': habilidad}}
+        )
+    return redirect(url_for('editColaborador', _id=_id))
+
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=8000, debug=True)
