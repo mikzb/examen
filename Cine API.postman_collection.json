@@ -1,0 +1,564 @@
+{
+	"info": {
+		"_postman_id": "83717b8c-2cf9-4a60-a46a-0a099a610b61",
+		"name": "Cine API",
+		"description": "API para gestionar películas, salas de cine y proyecciones.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39538410"
+	},
+	"item": [
+		{
+			"name": "Películas",
+			"item": [
+				{
+					"name": "Crear Película",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"titulo\": \"TEST_TITULO\",\n  \"imagen\": \"https://res.cloudinary.com/da5v08x9g/image/upload/v1734111806/xsy4fq3i3ehfqjshpdii.jpg\"\n}"
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/peliculas",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"peliculas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Películas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/peliculas",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"peliculas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Película por ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/peliculas/:id",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"peliculas",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{pelicula_id\n}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar Película",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"titulo\": \"PELICULA ACTUALIZADA\",\n  \"imagen\": \"\"\n}"
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/peliculas/:id",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"peliculas",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{pelicula_edit_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar Película",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/peliculas/:id",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"peliculas",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{pelicula_delete_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Salas",
+			"item": [
+				{
+					"name": "Crear Sala",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"TEST_SALA\",\n  \"email\": \"propietario@sala.com\",\n  \"coordenadas\": {\"lat\": 36.722600, \"lon\": -4.424000}\n}"
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/salas",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"salas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Salas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/salas",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"salas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Sala por ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/salas/:id",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"salas",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{sala_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar Sala",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"SALA_ACTUALIZADA\",\n  \"email\": \"propietario@salaactualizada.com\",\n  \"coordenadas\": {\"lat\": 0, \"lon\": 0}\n}"
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/salas/:id",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"salas",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{sala_edit_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar Sala",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/salas/:id",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"salas",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{sala_delete_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Proyecciones",
+			"item": [
+				{
+					"name": "Asignar Proyección",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pelicula_id\": \"6797badf0c7aa97c00aadd8c\",\n  \"sala_id\": \"6797bd3d0c7aa97c00aadd8e\",\n  \"timestamp\": \"2077-05-14T13:45:30Z\"\n}"
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/proyecciones",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"proyecciones"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Proyección por Título",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/proyecciones/:titulo",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"proyecciones",
+								":titulo"
+							],
+							"variable": [
+								{
+									"key": "titulo",
+									"value": "{{pelicula_titulo}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cartelera",
+			"item": [
+				{
+					"name": "Obtener Cartelera",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/cartelera/:nombre_sala",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"cartelera",
+								":nombre_sala"
+							],
+							"variable": [
+								{
+									"key": "nombre_sala",
+									"value": "{{sala_nombre}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Recomendaciones",
+			"item": [
+				{
+					"name": "Recomendar por Fecha",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/recomendar/fecha?fecha={{fecha}}",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"recomendar",
+								"fecha"
+							],
+							"query": [
+								{
+									"key": "fecha",
+									"value": "{{fecha}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Recomendar por Cercanía",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/recomendar/cercania?lat={{lat}}&lon={{lon}}",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"recomendar",
+								"cercania"
+							],
+							"query": [
+								{
+									"key": "lat",
+									"value": "{{lat}}"
+								},
+								{
+									"key": "lon",
+									"value": "{{lon}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "pelicula_id\n",
+			"value": "6797badf0c7aa97c00aadd8c",
+			"type": "string"
+		},
+		{
+			"key": "pelicula_edit_id",
+			"value": "6797bbc30c7aa97c00aadd8d\n",
+			"type": "string"
+		},
+		{
+			"key": "sala_id",
+			"value": "6797bd3d0c7aa97c00aadd8e",
+			"type": "default"
+		},
+		{
+			"key": "sala_edit_id",
+			"value": "6797bd5b0c7aa97c00aadd8f",
+			"type": "default"
+		},
+		{
+			"key": "pelicula_titulo",
+			"value": "PELICULA_TEST",
+			"type": "default"
+		},
+		{
+			"key": "sala_nombre",
+			"value": "TEST_SALA",
+			"type": "default"
+		},
+		{
+			"key": "lat",
+			"value": "36.722600",
+			"type": "default"
+		},
+		{
+			"key": "lon",
+			"value": "-4.424000",
+			"type": "default"
+		},
+		{
+			"key": "sala_delete_id",
+			"value": "6797c7bec4080a951bf77a19",
+			"type": "default"
+		},
+		{
+			"key": "pelicula_delete_id",
+			"value": "6797c79bc4080a951bf77a17",
+			"type": "default"
+		},
+		{
+			"key": "fecha",
+			"value": "2025-02-12T12:45:30Z",
+			"type": "default"
+		}
+	]
+}
